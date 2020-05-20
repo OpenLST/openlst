@@ -1309,6 +1309,17 @@ commands like:
 # udevadm trigger
 ```
 
+One issue is a mismatch between the udev rules detailed in the 
+open-lst/tools/90-radio.rules file and the actual FTDI device you are using.
+You can detail the device information of your FTDI device using:
+
+```bash
+# udevadm info -a /dev/ttyUSB0
+```
+Check to make sure the information provided by this command matches the udev
+rules in the open-lst/tools/90-radio.rules file. More information on udev can
+be found on the web.
+
 ## Acknowledgements
 
 This project would not have been possible without the hard work of many people
