@@ -1309,6 +1309,30 @@ commands like:
 # udevadm trigger
 ```
 
+One issue is a mismatch between the udev rules detailed in the 
+open-lst/tools/90-radio.rules file and the actual FTDI device you are using.
+You can detail the device information of your FTDI device using:
+
+```bash
+# udevadm info -a /dev/ttyUSB0
+```
+Check to make sure the information provided by this command matches the udev
+rules in the 'open-lst/tools/90-radio.rules' file. More information on udev can
+be found on the web.
+
+It may be necessary to manually update the udev rules under '/etc/udev/rules.d' 
+in the '90-radio.rules' file. Be sure to edit file with administrator
+privileges.
+
+```bash
+# vim /etc/udev/rules.d/90-radio.rules
+```
+
+If no data is still being sent through the FTDI cable, try manually updating 
+the drivers for the cable here. Also, it might be worth opening VirtualBox and 
+going to Settings>USB for the openlst VM and adding a filter for your specific
+FTDI cable.
+
 ## Acknowledgements
 
 This project would not have been possible without the hard work of many people
