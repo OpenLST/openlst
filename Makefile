@@ -22,3 +22,5 @@ include open-lst/Build.mk
 vagrant: Vagrantfile
 	vagrant up
 	vagrant reload
+
+Hello
