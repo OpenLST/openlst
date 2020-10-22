@@ -284,6 +284,9 @@ def get_parser():
         '--raw',
         action='store_true',
         help="Output raw hexadecimal with very limited formatting")
+    parser.add_argument(
+	'-c',
+	help="Enter a command to bypass the terminal")
     return parser
 
 
@@ -302,4 +305,7 @@ def main():
         tx_socket=tx_socket,
         echo_socket=echo_socket,
         **vars(args))
-    rt.run()
+    if (sys.argv[1] == '-c'):
+	print("Reached")
+    else:
+    	rt.run()
