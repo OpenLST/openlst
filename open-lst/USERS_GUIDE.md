@@ -564,8 +564,11 @@ lst ack
 Exiting - Message Received
 ```
 
-If no response is received, `Exiting - Timeout` will display. If the command is
-invalid, `[ERROR] Invalid Command:` will be displayed.
+If no response is received withing the timeout period, `Exiting - Timeout` will 
+display. The defulat timeout length is 20 seconds. This can be changed in
+`terminal.py` in `project\open-lst\tools\` by changing the variable 
+`timeout_length`. If the command is invalid, `[ERROR] Invalid Command:` will be 
+displayed.
 
 ### Packet Structure
 
