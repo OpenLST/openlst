@@ -544,6 +544,29 @@ The terminal program provided with the radio firmware will try to parse the
 translator's command structure to build a list of suggested ways the user can
 complete the command (use the `<TAB>` key to view it).
 
+When using the radio terminal, commands begin with `lst` and are then followed
+by the commands listed in the "Commands" section within this guide. An example
+of a command used in the radio terminal is `lst get_telem` which will output
+`telem` followed by the telemetry information of the radio.
+
+Radio commands can be given in the command line of the Linux environment. To do
+so, enter the following: `radio_terminal -c [COMMAND]`. Here, [COMMAND] should
+be replaced by any command that can be entered into the radio terminal. Once
+entered, `Waiting for response...` will be displayed to signify that the command
+was valid and is waiting for a response. After the response is received,
+`Exiting - Message Received` will output and the program will end. This is an
+example of a `ACK` being succesfully sent and received:
+
+```
+$ radio_terminal -c lst ack
+Waiting for response...
+lst ack
+Exiting - Message Received
+```
+
+If no response is received, `Exiting - Timeout` will display. If the command is
+invalid, `[ERROR] Invalid Command:` will be displayed.
+
 ### Packet Structure
 
 Packets include a few parts to help the radios direct and respond to commands

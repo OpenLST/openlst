@@ -105,15 +105,14 @@ class RadioTerminal(object):
 	# Send User Command	
         if (self.send_user_command(' '.join(cmd_arr)) == False):
 	    return # Exit if command is invalid
-
 	timeout_length = 20
 	cntr = 0
-        if zmq_thread.is_alive():
+        while zmq_thread.is_alive():
             time.sleep(1)
 	    cntr += 1
 	    if cntr >= timeout_length:
 	    	self._custom_disconnect_zmq("Timeout")
-	    	self._quit()
+	    	#self._quit()
 	    	return
 
 	
