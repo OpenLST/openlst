@@ -36,6 +36,7 @@ class RadioTerminal(object):
         self.user_buffer = ''
         self.lock = threading.Lock()
         self.running = True  # Boolean flag used to signal loops to end
+	self.wait_for_msg = True
         self.trans = Translator()
         self.hwid = kwargs.get('hwid')  # Hardware ID for identifying the radio
         self.seqnum = kwargs.get('seqnum')  # Sequence number for cmd/response
@@ -66,6 +67,15 @@ class RadioTerminal(object):
         print("{:^80}".format("ZMQ sockets closed."))
         print("{:^80}".format("goodbye."))
 
+    # Disconencted with specific exit message
+    def _custom_disconnect_zmq(self, exit_msg):
+        ''' Try to close sockets when we're finished '''
+        self.rx.close()
+        self.tx.close()
+        print("Exiting - " + str(exit_msg))
+	self.running = False
+	self.wait_for_msg = False
+
     def run(self):
         ''' Startup the ZMQ watcher thread, then run the user input loop '''
         # add readline tab completion
@@ -82,6 +92,55 @@ class RadioTerminal(object):
 
         while zmq_thread.is_alive():
             time.sleep(.1)
+
+    # Starts thread too wait for received msg
+    def custom_run(self, cmd_arr):
+        ''' Startup the Custom ZMQ watcher thread '''
+        # create and start a custom ZMQ thread to monitor and display the ZMQ sockets
+        zmq_thread = threading.Thread(
+            target=self._custom_zmq_watcher_thread, name='zmq_thread')
+        zmq_thread.daemon = True
+        zmq_thread.start()
+
+	# Send User Command	
+        if (self.send_user_command(' '.join(cmd_arr)) == False):
+	    return # Exit if command is invalid
+
+	timeout_length = 20
+	cntr = 0
+        if zmq_thread.is_alive():
+            time.sleep(1)
+	    cntr += 1
+	    if cntr >= timeout_length:
+	    	self._custom_disconnect_zmq("Timeout")
+	    	self._quit()
+	    	return
+
+	
+    # Used to monitor received messages and prints them
+    def _custom_zmq_watcher_thread(self):
+        ''' Monitor and print from ZMQ sockets '''
+        self._connect_zmq()
+	print("Waiting for response...")
+        while self.wait_for_msg:
+            msgs = dict(self.poller.poll(50))
+            for sock, msg in msgs.iteritems():
+                if sock == self.rx:
+                    msg = self.rx.recv()
+		    print(self._process_zmq_msg(msg))
+		    # Quit after receiving message
+		    self._quit()
+		    self._custom_disconnect_zmq("Message Received")
+		    return
+                elif sock == self.echo:
+                    msg = self.echo.recv()
+                    # Suppress echos if seqnum matches; most likely from us
+                    if self._seqnum_matches(msg):
+                        continue
+		    # Print Unexpected Message (i.e. Reboot message) but don't exit
+		    print("Unexpected: " + str(self._process_zmq_msg(msg)))
+        return
+	#self._disconnect_zmq()
 
     def _zmq_watcher_thread(self):
         ''' Monitor and print from ZMQ sockets '''
@@ -130,7 +189,7 @@ class RadioTerminal(object):
                 self.hwid, self.seqnum, cmd)
         except Exception:
             print("[ERROR] Invalid command: {}".format(self.user_buffer))
-            return
+            return False
         if self.raw:
             self.insert_msg(">", cmd)
         self.seqnum = (self.seqnum + 1) % (16**4)
@@ -286,7 +345,9 @@ def get_parser():
         help="Output raw hexadecimal with very limited formatting")
     parser.add_argument(
 	'-c',
-	help="Enter a command to bypass the terminal")
+	nargs="+",
+	help="Enter a command to bypass the terminal",
+	metavar="COMMAND")
     return parser
 
 
@@ -305,7 +366,16 @@ def main():
         tx_socket=tx_socket,
         echo_socket=echo_socket,
         **vars(args))
-    if (sys.argv[1] == '-c'):
-	print("Reached")
-    else:
-    	rt.run()
+    
+    # Condition for -c command
+    try:
+        if (sys.argv[1] == '-c'):
+	    rt._connect_zmq() # This declares tx (Used to send command) and rx (receive message)
+            cmd_arr = []
+	    for i in range(len(sys.argv) - 2): # Put command into cmd_arr
+	        cmd_arr.append(sys.argv[i+2])
+	    rt.custom_run(cmd_arr) # Start thread and send message
+        else: #Else: Run like normal
+    	    rt.run()
+    except:
+	    rt.run()
