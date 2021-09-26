@@ -17,7 +17,7 @@
 
 sudo apt-get update
 sudo apt-get install --assume-yes python-dev python-pip
-sudo pip install -e /home/vagrant/project/open-lst/tools
+sudo python -m pip install -e /home/vagrant/project/open-lst/tools
 
 # Install the radio services
 sudo cp /home/vagrant/project/open-lst/tools/radio@.service /etc/systemd/system/radio@.service
