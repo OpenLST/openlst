@@ -82,7 +82,7 @@ The OpenLST project consists of:
 2. A small set of Python tools for programming and communicating with the
    OpenLST radio
 3. A reference hardware design including schematics, part specs, layout, and
-   Gerber files using [KiCad](http://kicad-pcb.org/)
+   Gerber files using [KiCad](http://kicad.org/)
 4. This user's guide
 
 ### Non-Features
