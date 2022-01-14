@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-include radios/openlst_437/Board.mk
+include radios/satfab_telem/Board.mk
 include open-lst/Build.mk
 
 .PHONY: clean

@@ -14,15 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-RADIOS += openlst_437
-BOOTLOADERS += openlst_437
-openlst_437_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+RADIOS += satfab_telem
+BOOTLOADERS += satfab_telem
+satfab_telem_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 # Source files
-openlst_437_SRCS := \
-	$(openlst_437_DIR)/board.c
+satfab_telem_SRCS := \
+	$(satfab_telem_DIR)/board.c
 
-openlst_437_CFLAGS := -DCUSTOM_BOARD_INIT -I$(openlst_437_DIR)
+satfab_telem_CFLAGS := -DCUSTOM_BOARD_INIT -I$(satfab_telem_DIR)
 
 # Disable UART0 in the bootloader to save space
-openlst_437_BOOTLOADER_CFLAGS := -DUART0_ENABLED=0
+satfab_telem_BOOTLOADER_CFLAGS := -DUART0_ENABLED=0

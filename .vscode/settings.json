@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "radio.h": "c",
+        "input_handlers.h": "c",
+        "commands.h": "c"
+    }
+}

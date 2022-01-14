@@ -35,11 +35,15 @@ void board_init(void);
 
 #define BOARD_HAS_LED 1
 void board_led_set(__bit led_on);
+void board_led0_set (__bit led_on);
 
 // These are macros to save space in the bootloader
 // Enable bias to on-board 1W RF power amp (RF6504)
 #define board_pre_tx() P2_0 = 1;
 // Disable on-board power amp bias, to save power
 #define board_pre_rx() P2_0 = 0;
+
+// Set output power to -30 dBm, from Table 72 page 207
+#define RF_PA_CONFIG 0x12
 
 #endif

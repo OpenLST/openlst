@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/share/sdcc/include/*",
+                "/usr/share/sdcc/include/mcs51/*"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/sdcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "forcedInclude": [
+                "/usr/share/sdcc/include/mcs51/lint.h"
+            ]
+        }
+    ],
+    "version": 4
+}

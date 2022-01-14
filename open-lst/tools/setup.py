@@ -55,6 +55,7 @@ setup(name='openlst_tools',
               'radio_terminal=openlst_tools.terminal:main',
               'radio_cmd=openlst_tools.radio_cmd:main',
               'radio_time_sync=openlst_tools.time_sync:main',
+              'save_bootloader=openlst_tools.save_bootloader:main',
           ]
       },
       packages=['openlst_tools'],

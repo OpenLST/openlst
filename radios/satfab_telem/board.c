@@ -27,10 +27,15 @@ void board_init(void) {
 	P0SEL &= ~(1<<7);  // GPIO not peripheral
 	P0DIR |= 1<<7;  // Output not input
 
+	// Bypass pin setup
+	P1SEL &= ~(1<<1); // GPIO not peripheral
+	P1DIR |= 1<<1; // Output not input
+	P1_1 = 1;
+
 	// Power amplifier bias control on P2.0
-	P2SEL &= ~(1<<0);  // GPIO not peripheral
-	P2DIR |= 1<<0;  // Output not input
-	P2_0 = 0;
+	// P2SEL &= ~(1<<0);  // GPIO not peripheral
+	// P2DIR |= 1<<0;  // Output not input
+	// P2_0 = 0;
 
 	/* Set up radio "test" signal pins.  We're setting these up to be
 	   outputs from the radio core indicating when the radio is
@@ -38,13 +43,17 @@ void board_init(void) {
 	   off-board RF path switches.  Once set up, they are automatically
 	   toggled appropriately by the radio core whenever the radio state
 	   changes. */
-        // P1_7 = LNA_PD (asserted high in TX) = LST_TX_MODE
-        IOCFG2 = IOCFG2_GDO2_INV_ACTIVE_HIGH | IOCFG_GDO_CFG_PA_PD;
-        // P1_6 = PA_PD  (asserted low in RX) = !LST_RX_MODE
-        IOCFG1 = IOCFG1_GDO1_INV_ACTIVE_LOW | IOCFG_GDO_CFG_LNA_PD;
-        // No special function for P1_5 (IOCFG0)
+	// P1_7 = LNA_PD (asserted high in TX) = LST_TX_MODE
+	IOCFG2 = IOCFG2_GDO2_INV_ACTIVE_HIGH | IOCFG_GDO_CFG_PA_PD;
+	// P1_6 = PA_PD  (asserted low in RX) = !LST_RX_MODE
+	IOCFG1 = IOCFG1_GDO1_INV_ACTIVE_LOW | IOCFG_GDO_CFG_LNA_PD;
+	// No special function for P1_5 (IOCFG0)
 }
 
 void board_led_set(__bit led_on) {
-  P0_7 = led_on;
+	P0_7 = led_on;
+}
+
+void board_led0_set(__bit led_on) {
+	P0_6 = led_on;
 }
