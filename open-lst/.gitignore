@@ -1,6 +1,0 @@
-*.lst
-*.rel
-*.rst
-*.sym
-*.asm
-!flash_trigger.asm

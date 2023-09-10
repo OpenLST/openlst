@@ -1,2 +1,0 @@
-ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0451", ATTRS{idProduct}=="16a2", MODE="0666"
-DRIVERS=="ftdi_sio", SUBSYSTEMS=="usb", ATTRS{interface}=="TTL232R-3V3", ATTRS{bInterfaceNumber}=="00", MODE="0666", SYMLINK+="lst_uart1", OPTIONS+="last_rule", TAG+="systemd", ENV{SYSTEMD_WANTS}="radio@1"

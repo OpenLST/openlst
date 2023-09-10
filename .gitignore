@@ -1,3 +1,4 @@
+_old/**
 openlst/build/**
 *.log
 *.sig
