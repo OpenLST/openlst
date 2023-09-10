@@ -1,8 +1,4 @@
-*.hex
-*.lk
-*.map
-*.mem
-.vagrant
+openlst/build/**
 *.log
 *.sig
 *.keys
