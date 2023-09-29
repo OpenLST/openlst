@@ -8,6 +8,35 @@ Changes include:
 * TODO: Add commands to change modulation, data rate, output power
 * TODO: Code for SDR to talk to OpenLST
 
+## Setup
+
+Install required packages
+
+```bash
+sudo apt install build-essential pkg-config libusb-1.0-0-dev libboost-all-dev sdcc cc-tool
+```
+
+Set up Python environment (must have Python 3.6+ installed)
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Build bootloader and application
+
+```bash
+cd openlst
+make all
+```
+
+Flash bootloader and application
+
+```bash
+TODO
+```
+
 ## File Structure
 
 * `ground` - Python interface for controlling OpenLST over UART
@@ -17,6 +46,37 @@ Changes include:
     * `build` - Directory created during build process to hold all build artifacts
     * `common` - Files used by both bootloader and application
     * `radio` - Main application
+
+## RF Parameters
+
+### Data Rate
+
+Page 191, Section 13.5
+
+### Receiver Channel Filter Bandwidth
+
+Page 191, Section 13.6
+
+### Modulation Formats
+
+Page 196, Section 13.9
+
+DEVIATION_M, DEVIATION_E
+
+### Frequency
+
+Page 205, Section 13.3
+
+* Base frequency set using FREQ2, FREQ1, FREQ0
+* 8 bit channel selector and CHANSPC settings are used to choose specific channel relative to base frequency
+* Must be changed while radio is in idle state
+
+### Output Power
+
+Page 207, Section 13.15
+
+* Table with list of settings for given frequencies and power settings
+* TODO: Test these values and other values and see what happens
 
 ## UART Protocol
 
@@ -103,15 +163,11 @@ Planned commands to be added.
 Struct containing:
 * `uint8_t FSCTRL1`
 * `uint8_t FSCTRL0`
-* `uint8_t FREQ2`
-* `uint8_t FREQ1`
-* `uint8_t FREQ0`
+* `uint32_t FREQ`
 * `uint8_t CHAN_BW_E`
 * `uint8_t CHAN_BW_M`
 * `uint8_t DRATE_E`
 * `uint8_t DRATE_M`
-* `uint8_t CHANSPC_E`
-* `uint8_t CHANSPC_M`
 * `uint8_t DEVIATN_E`
 * `uint8_t DEVIATN_M`
 * `uint8_t PA_CONFIG`
