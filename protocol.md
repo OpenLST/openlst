@@ -6,7 +6,7 @@ Example packet: 0x22, 0x69, 0x0A, 0x02, 0x00, 0x5A, 0x99, 0x01, 0x11, 0x74, 0x65
 * 0x0A - Packet length (includes all bytes after this one)
 * 0x02, 0x00 - HWID, least significant byte first
 * 0x5A, 0x99 - Sequence number, increments by one after each command, least significant byte first
-* 0x01 - Destinination, not really sure what this does, should be fine to keep it as 0x01
+* 0x01 - Destination, not really sure what this does, should be fine to keep it as 0x01
 * 0x11 - ASCII command
 * 0x74, 0x65, 0x73, 0x74 - Payload "test"
 
