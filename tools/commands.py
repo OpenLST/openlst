@@ -1,0 +1,17 @@
+import enum
+
+class OpenLstCmds:
+    BOOTLOADER_PING = 0x00
+    BOOTLOADER_ACK = 0x01
+    BOOTLOADER_WRITE_PAGE = 0x02
+    BOOTLOADER_ERASE = 0x0C
+    ACK = 0x10
+    NACK = 0xFF
+    ASCII = 0x11
+    REBOOT = 0x12
+    GET_TIME = 0x13
+    SET_TIME = 0x14
+    RANGING = 0x15
+    RANGING_ACK = 0x16
+    GET_TELEM = 0x17
+    TELEM = 0x18

@@ -87,7 +87,7 @@ def process(image: bytes, hwid: int, keys: List[bytes]) -> bytes:
 @click.argument(
     "build_dir", type=click.Path(exists=True, file_okay=False, writable=True)
 )
-@click.argument("hwid", type=int)
+@click.argument("hwid")
 @click.option(
     "--key_file",
     type=click.Path(exists=True, dir_okay=False),
@@ -95,6 +95,8 @@ def process(image: bytes, hwid: int, keys: List[bytes]) -> bytes:
 )
 @click.option("-n", "dry_run", is_flag=True, default=False, help="Don't flash binary")
 def main(build_dir, hwid, key_file, dry_run):
+    hwid = binascii.unhexlify(hwid)
+
     with open(build_dir + "bootloader.hex", "r") as f:
         image = intel_hex.parse_hex_file(f.read())
 

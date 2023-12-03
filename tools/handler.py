@@ -3,6 +3,8 @@ import serial
 import serial.threaded
 import queue
 
+from commands import OpenLstCmds
+
 class LstProtocol(serial.threaded.Protocol):
     START = b'\x22\x69'
 
@@ -72,8 +74,15 @@ class LstProtocol(serial.threaded.Protocol):
 
         self.packet_queue.put_nowait(packet)
 
+        # Print boot messages
+        msg = packet['data'].decode()
+
+        print(f"Packet type {packet['command']}")
+        # if packet['command'] == OpenLstCmds.ASCII and "OpenLST" in msg:
+            # print(f"Boot message: {msg}") # TODO: figure out how to use logging without breaking ipython
+
     def handle_out_of_packet_data(self, data):
-        logging.warning(f"Unexpected bytes: {data}")
+        print(f"Unexpected bytes: {data}")
 
 if __name__ == "__main__":
     import click
@@ -83,7 +92,7 @@ if __name__ == "__main__":
     @click.option('--port', default=None, help="Serial port")
     @click.option('--rtscts', is_flag=True, default=False, help="Use RTS/CTS flow control")
     def main(port, rtscts):
-        logging.basicConfig()
+        logging.basicConfig(level="INFO")
 
         if port:
             ser = serial.Serial(port, baudrate=115200, rtscts=rtscts)

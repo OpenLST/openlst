@@ -1,3 +1,4 @@
 click >=8.1.7, <9
+cryptography >= 41.0.7, <42
 ipython >= 8.12.3, <9
 pyserial >=3.5, <4

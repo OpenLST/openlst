@@ -31,10 +31,12 @@ cd openlst
 make all
 ```
 
-Flash bootloader and application
+Flash bootloader and application. Change HWID from 1234 to something else. Add signing keys for flight builds.
 
 ```bash
-TODO
+source venv/bin/activate
+./tools/flash.py openlst/build 1234
+./tools/bootload.py --port /dev/ttyUSB0 1234 openlst/build/radio.hex
 ```
 
 ## File Structure
@@ -93,6 +95,29 @@ Multi-byte fields are all least significant byte first
 | Data | N | Data bytes |
 
 ### Default Commands
+
+#### 0x00 - BOOTLOADER_PING
+
+Ping bootloader. This returns a BOOTLOADER_ACK and resets bootloader watchdog.
+
+#### 0x01 - BOOTLOADER_ACK
+
+ACK returned by bootloader.
+
+#### 0x02 - BOOTLOADER_WRITE_PAGE
+
+Write data to application flash. Data is structured as:
+
+```c
+typedef struct {
+	uint8_t flash_page;
+	uint8_t page_data[FLASH_WRITE_PAGE_SIZE];
+} msg_bootloader_write_page_t;
+```
+
+#### 0x0C - BOOTLOADER_ERASE
+
+Erase application flash sections.
 
 #### 0x10 - ACK
 
