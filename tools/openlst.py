@@ -175,7 +175,7 @@ class OpenLst:
         return self.get_packet(OpenLstCmds.ASCII)
 
     def transmit(self, msg: bytes, dest_hwid=0x0000):
-        assert len(bytes) <= MAX_DATA_LEN
+        assert len(msg) <= MAX_DATA_LEN
 
         self._send(dest_hwid, OpenLstCmds.ASCII, msg)
 
