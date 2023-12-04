@@ -16,7 +16,7 @@ import intel_hex
 
 
 def sign_image(image: bytes, key: bytes):
-    iv = b'\0' * 16
+    iv = b"\0" * 16
 
     cipher = AES.new(key, AES.MODE_CBC, iv)
     cbc = cipher.encrypt(image)
@@ -28,7 +28,7 @@ def load_image(openlst: OpenLst, key: bytes, image: bytes):
     FC = FlashConstants
 
     # Sign image
-    signature = sign_image(image[FC.FLASH_APP_START:FC.FLASH_SIGNATURE_START], key)
+    signature = sign_image(image[FC.FLASH_APP_START : FC.FLASH_SIGNATURE_START], key)
     assert len(signature) == FC.FLASH_SIGNATURE_LEN
 
     image = (
@@ -70,6 +70,9 @@ def load_image(openlst: OpenLst, key: bytes, image: bytes):
         openlst.flash_program_page(page_data, page_num)
 
     openlst.flash_program_page(bytes(), 255, False)
+
+    # Delay so we can see boot message
+    time.sleep(2)
 
 
 @click.command()
