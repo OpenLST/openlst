@@ -187,12 +187,19 @@ Planned commands to be added.
 
 Struct containing:
 * `uint32_t FREQ`
+  * [7:0] - FREQ0
+  * [15:8] - FREQ1
+  * [23:16] - FREQ2
 * `uint8_t FSCTRL0`
 * `uint8_t FSCTRL1`
-* `uint8_t RF_CHAN_BW_E`
-* `uint8_t RF_CHAN_BW_M`
+* `uint8_t RF_CHAN_BW`
+  * [1:0] - CHANBW_M
+  * [3:2] - CHANBW_E
 * `uint8_t RF_DRATE_E`
+  * [3:0] - DRATE_E
 * `uint8_t RF_DRATE_M`
-* `uint8_t RF_DEVIATN_E`
-* `uint8_t RF_DEVIATN_M`
+  * [7:0] - DRATE_M
+* `uint8_t RF_DEVIATN`
+  * [2:0] - DEVIATN_M
+  * [6:4] - DEVIATN_E
 * `uint8_t PA_CONFIG0`

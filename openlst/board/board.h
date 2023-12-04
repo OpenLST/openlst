@@ -75,12 +75,10 @@ typedef struct {
     uint32_t freq;
     uint8_t fsctrl0;
     uint8_t fsctrl1;
-    uint8_t chan_bw_e;
-    uint8_t chan_bw_m;
+    uint8_t chan_bw;
     uint8_t drate_e;
     uint8_t drate_m;
-    uint8_t deviatn_e;
-    uint8_t deviatn_m;
+    uint8_t deviatn;
     uint8_t pa_config;
 } rf_params_t;
 

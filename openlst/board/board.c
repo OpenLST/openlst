@@ -90,18 +90,17 @@ uint8_t custom_commands(const __xdata command_t *cmd, uint8_t len, __xdata comma
 			rf_param_freq0 = (cmd_data->rf_params.freq) & 0xFF;
 			rf_param_freq1 = (cmd_data->rf_params.freq >> 8) & 0xFF;
 			rf_param_freq2 = (cmd_data->rf_params.freq >> 16) & 0xFF;
-			rf_param_chan_bw_e = (cmd_data->rf_params.chan_bw_e) & 0x3;
-			rf_param_chan_bw_m = (cmd_data->rf_params.chan_bw_m) & 0x3;
+			rf_param_chan_bw_e = (cmd_data->rf_params.chan_bw >> 2) & 0x3;
+			rf_param_chan_bw_m = (cmd_data->rf_params.chan_bw) & 0x3;
 			rf_param_drate_e = (cmd_data->rf_params.drate_e) & 0xF;
 			rf_param_drate_m = (cmd_data->rf_params.drate_m) & 0xFF;
-			rf_param_deviatn_e = (cmd_data->rf_params.deviatn_e) & 0x7;
-			rf_param_deviatn_m = (cmd_data->rf_params.deviatn_m) & 0x7;
+			rf_param_deviatn_e = (cmd_data->rf_params.deviatn >> 4) & 0x7;
+			rf_param_deviatn_m = (cmd_data->rf_params.deviatn) & 0x7;
 			rf_param_pa_config = (cmd_data->rf_params.pa_config) & 0xFF;
 
+			return sizeof(reply->header);
 			break;
 	}
-
-	return sizeof(reply->header);
 }
 
 uint8_t board_apply_radio_settings(uint8_t mode) {

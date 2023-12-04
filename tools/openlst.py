@@ -1,5 +1,6 @@
 import binascii
 import logging
+import numpy as np
 import random
 import serial
 import serial.threaded
@@ -14,66 +15,29 @@ from handler import LstProtocol
 
 MAX_DATA_LEN = 251 - 6
 
-@dataclass
-class OpenLstParams:
-    # Configuration
-    f_ref = 27e6
 
-    # Register values
-    FSCTRL0: int
-    FSCTRL1: int
-    FREQ: int
-    MDMCFG4: int
-    MDMCFG3: int
-    MDMCFG2: int
-    DEVIATN: int
-    PA_CONFIG: int
-
-    def set_if(self, f_if) -> float:
-        FREQ_IF = int(2**10 * f_if / self.f_ref)
-        f_if_actual = self.f_ref * FREQ_IF / (2**10)
-
-        self.FSCTRL1 = FREQ_IF
-
-        return f_if_actual
-
-    def set_freqoff(self):
-        "TODO"
-        pass
-
-    def set_freq(self, f_carrier) -> float:
-        FREQ = int(2**16 * f_carrier / self.f_ref)
-        f_carrier_actual = self.f_ref * FREQ / (2**16)
-
-        self.FREQ = FREQ
-
-        return f_carrier_actual
-
-    def set_datarate(self, baud) -> bool:
-        pass
-
-
-def unpack_cint(data: bytes, size: int, signed: bool):
+def unpack_cint(data: bytes, size: int, signed: bool) -> int:
     if size == 1:
         fmt = "<b"
     elif size == 2:
         fmt = "<h"
     elif size == 4:
         fmt = "<i"
-    
+
     if not signed:
         fmt = fmt.upper()
-    
+
     return struct.unpack(fmt, data)[0]
 
-def pack_cint(data: int, size: int, signed: bool):
+
+def pack_cint(data: int, size: int, signed: bool) -> bytes:
     if size == 1:
         fmt = "<b"
     elif size == 2:
         fmt = "<h"
     elif size == 4:
         fmt = "<i"
-    
+
     if not signed:
         fmt = fmt.upper()
 
@@ -81,7 +45,16 @@ def pack_cint(data: int, size: int, signed: bool):
 
 
 class OpenLst:
-    def __init__(self, port: str, hwid: int, id: str = None, baud=115200, rtscts=False, timeout=1) -> None:
+    def __init__(
+        self,
+        port: str,
+        hwid: int,
+        id: str = None,
+        baud: int = 115200,
+        rtscts: bool = False,
+        timeout: float = 1,
+        f_ref: float = 27e6,
+    ) -> None:
         """Object for communicating with OpenLST.
 
         If `id` is given, all ports will be checked for one with that ID. This
@@ -107,6 +80,7 @@ class OpenLst:
 
         self.timeout = timeout
         self.hwid = hwid
+        self.f_ref = f_ref
 
         # Create thread but don't start it yet
         self.thread = serial.threaded.ReaderThread(self.ser, LstProtocol)
@@ -136,7 +110,7 @@ class OpenLst:
 
         while self.protocol.packet_queue.qsize() > 0:
             self.packets.append(self.protocol.packet_queue.get_nowait())
-        
+
         return len(self.packets)
 
     def get_packet(self, cmd=None, seqnum=None):
@@ -144,13 +118,13 @@ class OpenLst:
             return None
         elif seqnum:
             for i, packet in enumerate(self.packets):
-                if packet['seq'] == seqnum:
+                if packet["seq"] == seqnum:
                     return self.packets.pop(i)
 
             return None
         elif cmd:
             for i, packet in enumerate(self.packets):
-                if packet['command'] == cmd:
+                if packet["command"] == cmd:
                     return self.packets.pop(i)
 
             return None
@@ -174,18 +148,18 @@ class OpenLst:
             return
 
         if cmd:
-            self.packets = [x for x in self.packets if x['command'] != cmd]
+            self.packets = [x for x in self.packets if x["command"] != cmd]
         else:
             del self.packets[:]
 
     def _send(self, hwid: int, cmd: int, msg: bytes = bytes()):
         packet = bytearray()
 
-        packet.extend(b'\x22\x69')
+        packet.extend(b"\x22\x69")
         packet.append(6 + len(msg))
         packet.extend(struct.pack(">H", hwid))
         packet.extend(struct.pack(">H", self.seq))
-        packet.append(0x01) # TODO: figure this out
+        packet.append(0x01)  # TODO: figure this out
         packet.append(cmd)
         packet.extend(msg)
 
@@ -231,7 +205,7 @@ class OpenLst:
 
         if check_resp:
             assert resp is not None
-            assert resp['command'] == OpenLstCmds.BOOTLOADER_ACK, hex(resp['command'])
+            assert resp["command"] == OpenLstCmds.BOOTLOADER_ACK, hex(resp["command"])
 
         return resp
 
@@ -253,7 +227,7 @@ class OpenLst:
 
     def set_time(self, seconds: int = None, nanoseconds: int = None):
         if seconds == None or nanoseconds == None:
-            pass # TODO: get computer time
+            pass  # TODO: get computer time
 
         msg = bytearray()
 
@@ -271,7 +245,7 @@ class OpenLst:
         resp = self.get_packet_timeout(seqnum=seq)
 
         assert resp is not None
-        assert resp['command'] == OpenLstCmds.TELEM
+        assert resp["command"] == OpenLstCmds.TELEM
 
         data = resp["data"]
         telem = {}
@@ -281,7 +255,7 @@ class OpenLst:
         telem["uart1_rx_count"] = unpack_cint(data[9:13], 4, False)
         telem["rx_mode"] = unpack_cint(data[13:14], 1, False)
         telem["tx_mode"] = unpack_cint(data[14:15], 1, False)
-        telem["adc"] = [unpack_cint(data[i:i+2], 2, True) for i in range(15, 35, 2)]
+        telem["adc"] = [unpack_cint(data[i : i + 2], 2, True) for i in range(15, 35, 2)]
         telem["last_rssi"] = unpack_cint(data[35:36], 1, True)
         telem["last_lqi"] = unpack_cint(data[36:37], 1, False)
         telem["last_freqest"] = unpack_cint(data[37:38], 1, True)
@@ -296,18 +270,109 @@ class OpenLst:
 
         return telem
 
-    def set_rf_params(self, params: OpenLstParams):
-        pass
+    def set_rf_params(
+        self,
+        frequency: float = 437e6,
+        chan_bw: float = 60268,
+        drate: float = 7416,
+        deviation: float = 3707,
+        power: int = 0x12,
+    ):
+        """Sets CC1110 RF parameters.
+
+        Output power setting currently controls the raw register value.
+        Calibration is needed to correlate to actual output power.
+
+        Args:
+            frequency (float, optional): Carrier frequency (Hz). Defaults to 437e6.
+            chan_bw (float, optional): Channel bandwidth (Hz). Defaults to 60268.
+            drate (float, optional): Data rate (bps). Defaults to 7416.
+            deviation (float, optional): FSK frequency deviation. Defaults to 3707.
+            power (int, optional): Output power settings. Defaults to 0x12.
+
+        Returns:
+            Tuple of actual values of carrier frequency, channel bandwidth,
+            data rate and deviation.
+        """
+
+        # f_carrier = (f_ref / 2^16) * FREQ
+        FREQ = int(2**16 * frequency / self.f_ref)
+        f_actual = FREQ * self.f_ref / 2**16
+
+        # Keep offset and IF as defaults
+        FREQOFF = 0
+        FREQ_IF = 6
+
+        FSCTRL0 = FREQOFF
+        FSCTRL1 = FREQ_IF
+
+        # Channel bandwidth
+        if chan_bw < 60268:
+            chan_bw = 60268
+        elif chan_bw > 843750:
+            chan_bw = 843750
+
+        # BW_channel = f_ref / (8 * 2^CHANBW_E * (4 + CHANBW_M))
+        CHANBW_E = int(19 - np.floor(np.log2(chan_bw) + 0.25))
+        CHANBW_M = int(np.round(self.f_ref / (chan_bw * 8 * 2**CHANBW_E) - 4))
+
+        assert CHANBW_E >= 0 and CHANBW_E < 4, CHANBW_E
+        assert CHANBW_M >= 0 and CHANBW_M < 4, CHANBW_M
+
+        chanbw_actual = self.f_ref / (8 * (4 + CHANBW_M) * 2**CHANBW_E)
+
+        # Data rate
+        # R_DATA = f_ref * 2^DRATE_E * (256 + DRATE_M) / 2^28
+        DRATE_E = int(np.floor(np.log2(drate * 2**20 / self.f_ref)))
+        DRATE_M = int(np.round(drate * 2**28 / (self.f_ref * 2**DRATE_E) - 256))
+
+        assert DRATE_E >= 0 and DRATE_E < 16, DRATE_E
+        assert DRATE_M >= 0 and DRATE_M < 256, DRATE_M
+
+        drate_actual = self.f_ref * 2**DRATE_E * (256 + DRATE_M) / 2**28
+
+        # Deviation
+        # f_dev = f_ref * 2^DEVIATN_E * (8 + DEVIATN_M) / 2^17
+        DEVIATN_E = int(np.floor(np.log2(deviation * 2**14 / self.f_ref)))
+        DEVIATN_M = int(
+            np.round(deviation * 2**17 / (self.f_ref * 2**DEVIATN_E) - 8)
+        )
+
+        assert DEVIATN_E >= 0 and DEVIATN_E < 7, DEVIATN_E
+        assert DEVIATN_M >= 0 and DEVIATN_M < 7, DEVIATN_M
+
+        dev_act = self.f_ref * 2**DEVIATN_E * (8 + DEVIATN_M) / 2**17
+
+        msg = bytearray()
+        msg.extend(pack_cint(FREQ, 4, False))
+        msg.append(FSCTRL0)
+        msg.append(FSCTRL1)
+        msg.append(CHANBW_M | (CHANBW_E << 2))
+        msg.append(DRATE_E)
+        msg.append(DRATE_M)
+        msg.append(DEVIATN_M | (DEVIATN_E << 4))
+        msg.append(power & 0xFF)
+
+        seq = self._send(self.hwid, OpenLstCmds.RF_PARAMS, msg)
+        resp = self.get_packet_timeout(seqnum=seq)
+
+        assert resp is not None
+        assert resp["command"] == OpenLstCmds.ACK, hex(resp["command"])
+
+        return f_actual, chanbw_actual, drate_actual, dev_act
+
 
 if __name__ == "__main__":
     import click
     import IPython
 
     @click.command()
-    @click.option('--port', default=None, help="Serial port")
-    @click.option('--id', default=None, help="Serial interface ID")
-    @click.option('--rtscts', is_flag=True, default=False, help="Use RTS/CTS flow control")
-    @click.argument('hwid')
+    @click.option("--port", default=None, help="Serial port")
+    @click.option("--id", default=None, help="Serial interface ID")
+    @click.option(
+        "--rtscts", is_flag=True, default=False, help="Use RTS/CTS flow control"
+    )
+    @click.argument("hwid")
     def main(hwid, port, id, rtscts):
         logging.basicConfig(level="INFO")
 

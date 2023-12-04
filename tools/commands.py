@@ -15,3 +15,4 @@ class OpenLstCmds:
     RANGING_ACK = 0x16
     GET_TELEM = 0x17
     TELEM = 0x18
+    RF_PARAMS = 0x80
