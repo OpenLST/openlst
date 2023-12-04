@@ -53,6 +53,33 @@ class OpenLstParams:
         pass
 
 
+def unpack_cint(data: bytes, size: int, signed: bool):
+    if size == 1:
+        fmt = "<b"
+    elif size == 2:
+        fmt = "<h"
+    elif size == 4:
+        fmt = "<i"
+    
+    if not signed:
+        fmt = fmt.upper()
+    
+    return struct.unpack(fmt, data)[0]
+
+def pack_cint(data: int, size: int, signed: bool):
+    if size == 1:
+        fmt = "<b"
+    elif size == 2:
+        fmt = "<h"
+    elif size == 4:
+        fmt = "<i"
+    
+    if not signed:
+        fmt = fmt.upper()
+
+    return struct.pack(fmt, data)
+
+
 class OpenLst:
     def __init__(self, port: str, hwid: int, id: str = None, baud=115200, rtscts=False, timeout=1) -> None:
         """Object for communicating with OpenLST.
@@ -208,14 +235,66 @@ class OpenLst:
 
         return resp
 
-    def get_time():
-        pass
+    def get_time(self):
+        seq = self._send(self.hwid, OpenLstCmds.GET_TIME)
+        resp = self.get_packet_timeout(seqnum=seq)
 
-    def set_time():
-        pass
+        assert resp is not None
+
+        if resp["command"] == OpenLstCmds.NACK:
+            return None
+
+        t = {}
+
+        t["s"] = unpack_cint(resp["data"][0:4], 4, False)
+        t["ns"] = unpack_cint(resp["data"][4:8], 4, False)
+
+        return t
+
+    def set_time(self, seconds: int = None, nanoseconds: int = None):
+        if seconds == None or nanoseconds == None:
+            pass # TODO: get computer time
+
+        msg = bytearray()
+
+        msg.extend(pack_cint(seconds, 4, False))
+        msg.extend(pack_cint(nanoseconds, 4, False))
+
+        seq = self._send(self.hwid, OpenLstCmds.SET_TIME, msg)
+        resp = self.get_packet_timeout(seqnum=seq)
+
+        assert resp is not None
+        assert resp["command"] == OpenLstCmds.ACK
 
     def get_telem(self):
-        pass
+        seq = self._send(self.hwid, OpenLstCmds.GET_TELEM)
+        resp = self.get_packet_timeout(seqnum=seq)
+
+        assert resp is not None
+        assert resp['command'] == OpenLstCmds.TELEM
+
+        data = resp["data"]
+        telem = {}
+
+        telem["uptime"] = unpack_cint(data[1:5], 4, False)
+        telem["uart0_rx_count"] = unpack_cint(data[5:9], 4, False)
+        telem["uart1_rx_count"] = unpack_cint(data[9:13], 4, False)
+        telem["rx_mode"] = unpack_cint(data[13:14], 1, False)
+        telem["tx_mode"] = unpack_cint(data[14:15], 1, False)
+        telem["adc"] = [unpack_cint(data[i:i+2], 2, True) for i in range(15, 35, 2)]
+        telem["last_rssi"] = unpack_cint(data[35:36], 1, True)
+        telem["last_lqi"] = unpack_cint(data[36:37], 1, False)
+        telem["last_freqest"] = unpack_cint(data[37:38], 1, True)
+        telem["packets_sent"] = unpack_cint(data[38:42], 4, False)
+        telem["cs_count"] = unpack_cint(data[42:46], 4, False)
+        telem["packets_good"] = unpack_cint(data[46:50], 4, False)
+        telem["packets_rejected_checksum"] = unpack_cint(data[50:54], 4, False)
+        telem["packets_rejected_reserved"] = unpack_cint(data[54:58], 4, False)
+        telem["packets_rejected_other"] = unpack_cint(data[58:62], 4, False)
+
+        # TODO: reserved, custom fields
+
+        return telem
 
     def set_rf_params(self, params: OpenLstParams):
         pass
