@@ -44,6 +44,46 @@ void board_led0_set (__bit led_on);
 #define board_pre_rx() P2_0 = 0;
 
 // Set output power to -30 dBm, from Table 72 page 207
-#define RF_PA_CONFIG 0x12
+#define RF_PA_CONFIG 0xC0
+
+// === RF parameter control ===
+// To go back to original behavior, comment out everything inside the #ifndef BOOTLOADER
+#ifndef BOOTLOADER
+
+// Get rid of default board_apply_radio_settings()
+#define BOARD_RF_SETTINGS
+
+// Add custom commands
+#define CUSTOM_COMMANDS
+
+// Keep RF modes just so other code doesn't break
+typedef enum {
+  default_rf_mode = 0,
+  ranging_rf_mode = 1,
+} lst_rf_mode_e;
+
+#define RADIO_MODE_DEFAULT_RX default_rf_mode
+#define RADIO_MODE_DEFAULT_TX default_rf_mode
+#define RADIO_MODE_RANGING_RX ranging_rf_mode
+#define RADIO_MODE_RANGING_TX ranging_rf_mode
+
+typedef enum {
+    custom_msg_rf_params = 0x80
+} custom_msg_no;
+
+typedef struct {
+    uint32_t freq;
+    uint8_t fsctrl0;
+    uint8_t fsctrl1;
+    uint8_t chan_bw_e;
+    uint8_t chan_bw_m;
+    uint8_t drate_e;
+    uint8_t drate_m;
+    uint8_t deviatn_e;
+    uint8_t deviatn_m;
+    uint8_t pa_config;
+} rf_params_t;
+
+#endif // #ifndef BOOTLOADER
 
 #endif

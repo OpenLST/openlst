@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// Get rid of annoying warning (overflow in implicit constant conversion)
+#pragma disable_warning 158
+
 // Convenience definitions for CC1110 register bits and settings
 #ifndef _CC1110_REGS_H
 #define _CC1110_REGS_H

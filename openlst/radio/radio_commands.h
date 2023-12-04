@@ -18,6 +18,7 @@
 #ifndef _MESSAGES_H
 #define _MESSAGES_H
 
+#include "board.h"
 #include "timers.h"
 #include "telemetry.h"
 
@@ -52,6 +53,9 @@ typedef union {
 	reboot_postpone_t reboot_postpone;
 	telemetry_t telemetry;
 	uint8_t data[1];
+#ifdef CUSTOM_COMMANDS
+	rf_params_t rf_params;
+#endif
 } msg_data_t;
 
 typedef struct radio_callsign{

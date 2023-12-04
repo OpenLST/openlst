@@ -186,13 +186,13 @@ Planned commands to be added.
 #### 0x80 - Set RF Parameters
 
 Struct containing:
-* `uint8_t FSCTRL1`
-* `uint8_t FSCTRL0`
 * `uint32_t FREQ`
-* `uint8_t CHAN_BW_E`
-* `uint8_t CHAN_BW_M`
-* `uint8_t DRATE_E`
-* `uint8_t DRATE_M`
-* `uint8_t DEVIATN_E`
-* `uint8_t DEVIATN_M`
-* `uint8_t PA_CONFIG`
+* `uint8_t FSCTRL0`
+* `uint8_t FSCTRL1`
+* `uint8_t RF_CHAN_BW_E`
+* `uint8_t RF_CHAN_BW_M`
+* `uint8_t RF_DRATE_E`
+* `uint8_t RF_DRATE_M`
+* `uint8_t RF_DEVIATN_E`
+* `uint8_t RF_DEVIATN_M`
+* `uint8_t PA_CONFIG0`
