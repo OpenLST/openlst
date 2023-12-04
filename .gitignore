@@ -4,5 +4,6 @@ openlst/build/**
 *.sig
 *.keys
 key_file
+*.hex
 venv/
 __pycache__/

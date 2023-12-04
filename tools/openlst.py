@@ -1,3 +1,4 @@
+import binascii
 import logging
 import random
 import serial
@@ -10,6 +11,8 @@ from dataclasses import dataclass
 
 from commands import OpenLstCmds
 from handler import LstProtocol
+
+MAX_DATA_LEN = 251 - 6
 
 @dataclass
 class OpenLstParams:
@@ -51,7 +54,7 @@ class OpenLstParams:
 
 
 class OpenLst:
-    def __init__(self, port: str, id: str, hwid: int, baud=115200, rtscts=False, timeout=1) -> None:
+    def __init__(self, port: str, hwid: int, id: str = None, baud=115200, rtscts=False, timeout=1) -> None:
         """Object for communicating with OpenLST.
 
         If `id` is given, all ports will be checked for one with that ID. This
@@ -59,8 +62,8 @@ class OpenLst:
 
         Args:
             port (str): Serial port location. Looks like /dev/tty123 on Linux and COM123 on windows.
-            id (str): Serial port ID.
             hwid (int): HWID of connected OpenLST.
+            id (str, optional): Serial port ID.
             baud (int, optional): Serial baud rate. Defaults to 115200.
             rtscts (bool, optional): Enable flow control with RTS/CTS. Defaults to False.
             timeout (int, optional): Command timeout in seconds. Defaults to 1.
@@ -76,7 +79,7 @@ class OpenLst:
                     self.ser = serial.Serial(ser_port.device, baud, rtscts=rtscts)
 
         self.timeout = timeout
-        self.hwid = int(hwid)
+        self.hwid = hwid
 
         # Create thread but don't start it yet
         self.thread = serial.threaded.ReaderThread(self.ser, LstProtocol)
@@ -168,11 +171,13 @@ class OpenLst:
 
         return seq
 
-    def receive():
-        pass
+    def receive(self) -> bytes:
+        return self.get_packet(OpenLstCmds.ASCII)
 
-    def transmit():
-        pass
+    def transmit(self, msg: bytes, dest_hwid=0x0000):
+        assert len(bytes) <= MAX_DATA_LEN
+
+        self._send(dest_hwid, OpenLstCmds.ASCII, msg)
 
     def reboot(self):
         self._send(self.hwid, OpenLstCmds.REBOOT)
@@ -187,17 +192,19 @@ class OpenLst:
 
         return self.get_packet_timeout(seqnum=seq)
 
-    def flash_program_page(self, data: bytes, addr: int):
-        assert len(data) == 128
+    def flash_program_page(self, data: bytes, addr: int, check_resp: bool = True):
+        assert len(data) == 128 or len(data) == 0
 
         msg = bytearray()
         msg.append(addr)
         msg.extend(data)
 
-        seq = self._send(self.hwid, OpenLstCmds.BOOTLOADER_WRITE_PAGE)
+        seq = self._send(self.hwid, OpenLstCmds.BOOTLOADER_WRITE_PAGE, msg)
         resp = self.get_packet_timeout(seqnum=seq)
-        assert resp is not None
-        assert resp['command'] == OpenLstCmds.BOOTLOADER_ACK
+
+        if check_resp:
+            assert resp is not None
+            assert resp['command'] == OpenLstCmds.BOOTLOADER_ACK, hex(resp['command'])
 
         return resp
 
@@ -225,7 +232,10 @@ if __name__ == "__main__":
     def main(hwid, port, id, rtscts):
         logging.basicConfig(level="INFO")
 
-        openlst = OpenLst(port, id, hwid, rtscts=rtscts)
+        hwid = binascii.unhexlify(hwid)
+        hwid = struct.unpack(">H", hwid)[0]
+
+        openlst = OpenLst(port, hwid, id, rtscts=rtscts)
 
         with openlst:
             IPython.embed()

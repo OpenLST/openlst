@@ -27,18 +27,18 @@ class FlashConstants:
     FLASH_STORAGE_END = 0x6FFF
 
 
-def process(image: bytes, hwid: int, keys: List[bytes]) -> bytes:
+def process(image: bytes, hwid: bytes, keys: List[bytes]) -> bytes:
     FC = FlashConstants
+
     # Insert HWID
-    hwid_bytes = struct.pack("<H", hwid)
-    assert len(hwid_bytes) < 3, "Invalid HWID"
+    assert len(hwid) < 3, "Invalid HWID"
 
     if (
         any(b != 0 for b in image[FC.FLASH_HWID : FC.FLASH_APP_START])
-        and image[FC.FLASH_HWID : FC.FLASH_APP_START] != hwid_bytes
+        and image[FC.FLASH_HWID : FC.FLASH_APP_START] != hwid
     ):
         raise ValueError("hardware ID area is not empty")
-    image[FC.FLASH_HWID : FC.FLASH_APP_START] = hwid_bytes
+    image[FC.FLASH_HWID : FC.FLASH_APP_START] = hwid
 
     # Insert keys
     for key_index, key in enumerate(keys):
@@ -97,7 +97,7 @@ def process(image: bytes, hwid: int, keys: List[bytes]) -> bytes:
 def main(build_dir, hwid, key_file, dry_run):
     hwid = binascii.unhexlify(hwid)
 
-    with open(build_dir + "bootloader.hex", "r") as f:
+    with open(build_dir + "/bootloader.hex", "r") as f:
         image = intel_hex.parse_hex_file(f.read())
 
     if key_file:
@@ -111,7 +111,7 @@ def main(build_dir, hwid, key_file, dry_run):
 
     image = process(image, hwid, keys)
 
-    with open(build_dir + "bootloader_processed.hex", 'w') as f:
+    with open(build_dir + "/bootloader_processed.hex", 'w') as f:
         f.write(intel_hex.dump_hex_file(image))
 
     LOCK_BITS = "{:02X}".format(
@@ -127,7 +127,7 @@ def main(build_dir, hwid, key_file, dry_run):
         "-e",  # Erase
         "-v",  # Verify after write
         "-l", LOCK_BITS,  # set lock bits
-        "-w", build_dir + "bootloader_processed.hex"  # Write processed file
+        "-w", build_dir + "/bootloader_processed.hex"  # Write processed file
     ]
 
     print(" ".join(cmd))
